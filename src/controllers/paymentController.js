@@ -95,9 +95,7 @@ const handleWebhook = async (req, res) => {
   try {
     // Construct the event using the raw request body
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-    console.log("Webhook event:", event); // Debugging log
   } catch (err) {
-    console.error("Webhook error:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
@@ -105,14 +103,12 @@ const handleWebhook = async (req, res) => {
   switch (event.type) {
     case "checkout.session.completed":
       const session = event.data.object;
-      console.log("Session data:", session); // Debugging log
 
       // Extract orderId and userId from metadata
       const orderId = session.metadata.orderId;
       const userId = session.metadata.userId;
 
       if (!orderId || !userId) {
-        console.error("Order ID or User ID not found in session metadata");
         return res.status(400).json({
           message: "Order ID or User ID not found in session metadata",
           success: false,

@@ -18,6 +18,7 @@ const PORT = process.env.PORT || 3000;
 // Middlewares
 app.use(cors());
 
+// Payment route require raw data
 app.use("/api/payment", paymentRoutes);
 
 app.use(express.json());
