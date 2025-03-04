@@ -84,6 +84,7 @@ const initiatePayment = async (req, res) => {
   }
 };
 
+// Handle Stripe webhook
 const handleWebhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -105,13 +106,14 @@ const handleWebhook = async (req, res) => {
       const session = event.data.object;
       console.log("Session data:", session); // Debugging log
 
-      // Extract orderId from metadata
+      // Extract orderId and userId from metadata
       const orderId = session.metadata.orderId;
+      const userId = session.metadata.userId;
 
-      if (!orderId) {
-        console.error("Order ID not found in session metadata");
+      if (!orderId || !userId) {
+        console.error("Order ID or User ID not found in session metadata");
         return res.status(400).json({
-          message: "Order ID not found in session metadata",
+          message: "Order ID or User ID not found in session metadata",
           success: false,
         });
       }
@@ -123,9 +125,8 @@ const handleWebhook = async (req, res) => {
       });
 
       // Clear the user's cart
-      const userId = session.metadata.userId; // Pass userId in metadata during session creation
       await prisma.cartItem.deleteMany({
-        where: { cart: { userId } },
+        where: { cart: { userId: parseInt(userId) } },
       });
 
       break;
