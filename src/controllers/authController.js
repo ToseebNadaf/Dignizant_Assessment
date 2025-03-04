@@ -2,9 +2,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { prisma } = require("../config/db.js");
 
-// Register a new user
 const registerUser = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, role = "USER" } = req.body;
 
   try {
     // Check if user already exists
@@ -28,6 +27,7 @@ const registerUser = async (req, res) => {
         username,
         email,
         password: hashedPassword,
+        role, // Include the role
       },
     });
 
