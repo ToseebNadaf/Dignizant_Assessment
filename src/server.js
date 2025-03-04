@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const errorHandler = require("./middleware/errorHandler");
+const authRoutes = require("./routes/authRoutes");
 
 dotenv.config();
 
@@ -12,6 +13,10 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Routes
+app.use("/api/auth", authRoutes);
+
+// Error Handling
 app.use(errorHandler);
 
 // Test route
