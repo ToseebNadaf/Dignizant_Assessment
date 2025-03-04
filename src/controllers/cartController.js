@@ -6,6 +6,18 @@ const addToCart = async (req, res) => {
   const userId = req.user.id;
 
   try {
+    // Check if the user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
     // Find the user's cart or create one if it doesn't exist
     let cart = await prisma.cart.findUnique({
       where: { userId },

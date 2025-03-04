@@ -34,6 +34,7 @@ const placeOrder = async (req, res) => {
       data: {
         userId,
         total,
+        status: "PENDING",
         items: {
           create: cart.items.map((item) => ({
             productId: item.productId,
@@ -42,11 +43,6 @@ const placeOrder = async (req, res) => {
           })),
         },
       },
-    });
-
-    // Clear the user's cart
-    await prisma.cartItem.deleteMany({
-      where: { cartId: cart.id },
     });
 
     res.status(201).json({
