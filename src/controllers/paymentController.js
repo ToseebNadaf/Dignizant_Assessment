@@ -26,31 +26,32 @@ const initiatePayment = async (req, res) => {
       });
     }
 
-    // Calculate total price
-    const total = cart.items.reduce((sum, item) => {
-      return sum + item.product.price * item.quantity;
-    }, 0);
-
-    // Create an order in the database
-    const order = await prisma.order.create({
-      data: {
+    // Find the existing PENDING order for the user
+    const order = await prisma.order.findFirst({
+      where: {
         userId,
-        total,
         status: "PENDING",
+      },
+      include: {
         items: {
-          create: cart.items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.product.price,
-          })),
+          include: {
+            product: true,
+          },
         },
       },
     });
 
+    if (!order) {
+      return res.status(404).json({
+        message: "No pending order found",
+        success: false,
+      });
+    }
+
     // Create a Stripe payment session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      line_items: cart.items.map((item) => ({
+      line_items: order.items.map((item) => ({
         price_data: {
           currency: "usd",
           product_data: {
@@ -64,7 +65,7 @@ const initiatePayment = async (req, res) => {
       success_url: `${process.env.FRONTEND_URL}/success`, // Redirect after successful payment
       cancel_url: `${process.env.FRONTEND_URL}/cancel`, // Redirect after canceled payment
       metadata: {
-        orderId: order.id, // Pass the order ID in metadata
+        orderId: order.id, // Pass the existing order ID in metadata
         userId: userId, // Pass the user ID in metadata
       },
     });
@@ -118,7 +119,7 @@ const handleWebhook = async (req, res) => {
         });
       }
 
-      // Update order status to "PAID"
+      // Update the existing order status to "PAID"
       await prisma.order.update({
         where: { id: parseInt(orderId) },
         data: { status: "PAID" },
