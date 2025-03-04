@@ -8,16 +8,17 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  email     String   @unique
+  id        Int        @id @default(autoincrement())
+  username  String     @unique
+  email     String     @unique
   password  String
-  role      String   @default("USER")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role      String     @default("USER")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   cart      Cart?
   orders    Order[]
   Review    Review[]
+  Wishlist  Wishlist[]
 }
 
 model Product {
@@ -33,6 +34,7 @@ model Product {
   cartItems   CartItem[]
   orderItems  OrderItem[]
   Review      Review[]
+  Wishlist    Wishlist[]
 }
 
 model Cart {
@@ -88,4 +90,16 @@ model Review {
   comment   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Wishlist {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId]) // Ensure a user can't add the same product to the wishlist multiple times
 }
